@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: visual-fashion-search
+    runtime: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      export DATASET_DIR="$PWD/deploy/archive"
+      export APP_DATA_DIR="$PWD/deploy/data"
+      export APP_MODELS_DIR="$PWD/deploy/models"
+      python prepare_data.py
+      python extract_features.py
+      python train_classifiers.py
+      python build_index.py
+    startCommand: |
+      export DATASET_DIR="$PWD/deploy/archive"
+      export APP_DATA_DIR="$PWD/deploy/data"
+      export APP_MODELS_DIR="$PWD/deploy/models"
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0

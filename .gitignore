@@ -8,4 +8,8 @@ __pycache__/
 /models/image_index.joblib
 /models/text_index.joblib
 
+# Render rebuilds these from the committed deploy/archive dataset.
+/deploy/data/
+/deploy/models/
+
 .DS_Store
