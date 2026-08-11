@@ -1,17 +1,11 @@
-# Python environment and caches
-venv/
+/venv/
 __pycache__/
-*.py[cod]
-
-# Raw dataset
-archive/
-
-# Generated pipeline outputs
-data/
-models/
-
-# Runtime files
+*.pyc
 *.log
-.env
+
+/archive/
+/data/
+/models/image_index.joblib
+/models/text_index.joblib
+
 .DS_Store
-Thumbs.db

@@ -1,0 +1,42 @@
+{
+  "targets": [
+    "masterCategory",
+    "subCategory",
+    "baseColour",
+    "season",
+    "usage"
+  ],
+  "color_dim": 24,
+  "results": {
+    "masterCategory": {
+      "accuracy": 0.9363086232980333,
+      "macro_f1": 0.6885361975183072,
+      "n_classes": 7,
+      "feature_dim": "full"
+    },
+    "subCategory": {
+      "accuracy": 0.8455370650529501,
+      "macro_f1": 0.5812909936778266,
+      "n_classes": 45,
+      "feature_dim": "full"
+    },
+    "baseColour": {
+      "accuracy": 0.2481089258698941,
+      "macro_f1": 0.01574122350546209,
+      "n_classes": 46,
+      "feature_dim": "color_only"
+    },
+    "season": {
+      "accuracy": 0.6255673222390318,
+      "macro_f1": 0.6335172468658874,
+      "n_classes": 4,
+      "feature_dim": "full"
+    },
+    "usage": {
+      "accuracy": 0.6832072617246596,
+      "macro_f1": 0.37084984008603045,
+      "n_classes": 8,
+      "feature_dim": "full"
+    }
+  }
+}

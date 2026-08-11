@@ -31,9 +31,11 @@ RAW_DIR = Path(os.environ.get("DATASET_DIR", ROOT / "archive"))
 CSV_PATH = RAW_DIR / "styles.csv"
 IMG_DIR = RAW_DIR / "images"
 
-DATA_DIR = ROOT / "data"
-MODELS_DIR = ROOT / "models"
+# APP_DATA_DIR and APP_MODELS_DIR can point the pipeline and application at
+# separate outputs, such as the small commit-ready dataset under deploy/.
+DATA_DIR = Path(os.environ.get("APP_DATA_DIR", ROOT / "data"))
+MODELS_DIR = Path(os.environ.get("APP_MODELS_DIR", ROOT / "models"))
 STATIC_DIR = ROOT / "static"
 
-DATA_DIR.mkdir(exist_ok=True)
-MODELS_DIR.mkdir(exist_ok=True)
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+MODELS_DIR.mkdir(parents=True, exist_ok=True)
