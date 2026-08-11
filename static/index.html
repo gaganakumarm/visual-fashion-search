@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0E0F11">
+<title>Vision Console — Fashion Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Space+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#0E0F11;
+    --surface:#17181B;
+    --surface-raised:#1C1D21;
+    --text:#F5F3EE;
+    --muted:#9C9CA3;
+    --border:#2A2B2F;
+    --accent:#D6FF3F;
+    --black:#090A0B;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+      var(--canvas);
+    background-size:48px 48px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input{font:inherit}
+  button{color:inherit}
+  .wrap{width:min(1380px,calc(100% - 64px));margin:0 auto}
+
+  .site-header{
+    position:sticky;
+    top:0;
+    z-index:20;
+    border-bottom:1px solid var(--border);
+    background:rgba(14,15,17,.9);
+    backdrop-filter:blur(16px);
+  }
+  .header-inner{height:72px;display:flex;align-items:center;justify-content:space-between}
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+  }
+  .brand-mark{width:12px;height:12px;background:var(--accent);box-shadow:0 0 18px rgba(214,255,63,.4)}
+  .status-cluster{display:flex;align-items:center;gap:18px}
+  .system-status{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--muted);
+    font:500 10px/1 'IBM Plex Mono',monospace;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+  }
+  .system-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 9px var(--accent)}
+  .stat-pill{
+    background:var(--accent);
+    color:var(--black);
+    padding:8px 11px;
+    font:600 10px/1 'IBM Plex Mono',monospace;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+  }
+  .vc-help-trigger{
+    width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--border);border-radius:50%;
+    background:var(--surface);color:var(--text);cursor:pointer;font:600 13px/1 'IBM Plex Mono',monospace;
+    transition:border-color .2s,color .2s,background .2s;
+  }
+  .vc-help-trigger:hover,.vc-help-trigger:focus-visible{border-color:var(--accent);color:var(--accent);background:rgba(214,255,63,.05);outline:none}
+
+  /* Help modal: intentionally scoped to vc-help-* */
+  .vc-help-backdrop{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:24px;background:rgba(5,6,7,.82);backdrop-filter:blur(8px)}
+  .vc-help-backdrop.vc-help-open{display:grid;animation:vcHelpFade .2s ease}
+  .vc-help-modal{width:min(920px,100%);max-height:min(86vh,820px);overflow:auto;border:1px solid #3A3B40;border-radius:12px;background:#17181B;box-shadow:0 32px 100px rgba(0,0,0,.62);animation:vcHelpRise .24s ease}
+  .vc-help-head{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:24px 26px;border-bottom:1px solid #2A2B2F;background:rgba(23,24,27,.96);backdrop-filter:blur(12px)}
+  .vc-help-kicker{display:block;margin-bottom:8px;color:#D6FF3F;font:500 9px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+  .vc-help-title{margin:0;font:600 28px/1 'Space Grotesk',sans-serif;letter-spacing:-.035em;text-transform:uppercase}
+  .vc-help-close{flex:0 0 auto;width:34px;height:34px;border:1px solid #2A2B2F;border-radius:50%;background:#0E0F11;color:#9C9CA3;cursor:pointer;font:400 18px/1 'IBM Plex Mono',monospace}
+  .vc-help-close:hover,.vc-help-close:focus-visible{border-color:#D6FF3F;color:#D6FF3F;outline:none}
+  .vc-help-body{padding:26px}
+  .vc-help-steps{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 32px;padding:0;list-style:none;counter-reset:vcHelpStep}
+  .vc-help-step{counter-increment:vcHelpStep;min-height:112px;padding:18px;border:1px solid #2A2B2F;border-radius:8px;background:#111214;color:#9C9CA3;font-size:13px;line-height:1.55}
+  .vc-help-step::before{content:'0' counter(vcHelpStep);display:block;margin-bottom:16px;color:#D6FF3F;font:600 10px/1 'IBM Plex Mono',monospace}
+  .vc-help-step strong{color:#F5F3EE;font-family:'Space Grotesk',sans-serif}
+  .vc-help-section-title{margin:0 0 7px;font:600 20px/1.15 'Space Grotesk',sans-serif;text-transform:uppercase}
+  .vc-help-section-sub{margin:0 0 18px;color:#9C9CA3;font:400 10px/1.5 'IBM Plex Mono',monospace;text-transform:uppercase}
+  .vc-help-samples{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+  .vc-help-sample{min-width:0;padding:0;overflow:hidden;border:1px solid #2A2B2F;border-radius:7px;background:#111214;color:#F5F3EE;text-align:left;cursor:pointer;transition:border-color .2s,transform .2s}
+  .vc-help-sample:hover,.vc-help-sample:focus-visible{border-color:#D6FF3F;transform:translateY(-2px);outline:none}
+  .vc-help-sample img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:#202125}
+  .vc-help-sample span{display:block;padding:9px;color:#D6FF3F;font:500 8px/1.35 'IBM Plex Mono',monospace;text-transform:uppercase}
+  .vc-help-state{grid-column:1/-1;min-height:120px;display:grid;place-items:center;border:1px dashed #2A2B2F;border-radius:7px;color:#9C9CA3;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+  .vc-help-result{display:none;margin-top:28px;padding-top:26px;border-top:1px solid #2A2B2F}
+  .vc-help-result.vc-help-result-show{display:block}
+  .vc-help-result-grid{display:grid;grid-template-columns:minmax(190px,.75fr) minmax(0,1.25fr);gap:22px}
+  .vc-help-tag-list{border:1px solid #2A2B2F;border-radius:7px;background:#111214;padding:4px 16px}
+  .vc-help-tag{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #2A2B2F}
+  .vc-help-tag:last-child{border-bottom:0}.vc-help-tag-label{color:#9C9CA3;font:500 9px/1 'IBM Plex Mono',monospace;text-transform:uppercase}.vc-help-tag-value{font:600 13px/1.2 'Space Grotesk',sans-serif;text-align:right;text-transform:uppercase}
+  .vc-help-matches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .vc-help-match{min-width:0;overflow:hidden;border:1px solid #2A2B2F;border-radius:6px;background:#111214}
+  .vc-help-match img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover}.vc-help-match span{display:block;overflow:hidden;padding:8px;color:#9C9CA3;font:500 8px/1.3 'IBM Plex Mono',monospace;text-overflow:ellipsis;white-space:nowrap}
+  @keyframes vcHelpFade{from{opacity:0}to{opacity:1}}@keyframes vcHelpRise{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:none}}
+
+  .hero{padding:74px 0 72px;border-bottom:1px solid var(--border)}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(430px,.95fr);gap:72px;align-items:center}
+  .eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:24px;color:var(--muted);font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+  .eyebrow::before{content:'01';color:var(--accent)}
+  h1{max-width:760px;margin:0;font:700 clamp(52px,6.2vw,96px)/.88 'Space Grotesk',sans-serif;letter-spacing:-.065em;text-transform:uppercase}
+  h1 em{color:var(--accent);font-style:italic;font-weight:600}
+  .hero-copy{max-width:610px;margin:30px 0 0;color:var(--muted);font-size:16px;line-height:1.7}
+  .quick-label{margin-top:34px;color:var(--muted);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+  .chip{
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:rgba(23,24,27,.7);
+    padding:9px 12px;
+    color:var(--muted);
+    cursor:pointer;
+    font:500 10px/1 'IBM Plex Mono',monospace;
+    text-transform:uppercase;
+    transition:border-color .2s,color .2s,background .2s;
+  }
+  .chip:hover,.chip:focus-visible{border-color:var(--accent);color:var(--accent);outline:none;background:rgba(214,255,63,.05)}
+
+  .console{
+    position:relative;
+    overflow:hidden;
+    border:1px solid #34353A;
+    border-radius:var(--radius);
+    background:var(--surface);
+    box-shadow:0 28px 80px rgba(0,0,0,.38);
+  }
+  .console::before{content:'';position:absolute;top:0;left:0;width:42px;height:2px;background:var(--accent)}
+  .console-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--border)}
+  .console-title{font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+  .console-code{color:var(--muted);font:400 10px/1 'IBM Plex Mono',monospace}
+  .console-body{padding:22px}
+  .console-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin-bottom:22px;border:1px solid var(--border);border-radius:8px;background:var(--black)}
+  .console-tab{border:0;border-radius:5px;background:transparent;padding:11px;color:var(--muted);cursor:pointer;font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;transition:background .2s,color .2s}
+  .console-tab.active{background:var(--accent);color:var(--black)}
+  .console-tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .panel{display:none}.panel.active{display:block;animation:panelIn .25s ease}
+  @keyframes panelIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .field-label{display:block;margin-bottom:10px;color:var(--muted);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase}
+  .text-row{display:flex;gap:9px}
+  .text-input{min-width:0;flex:1;border:1px solid var(--border);border-radius:6px;background:#111214;padding:15px 16px;color:var(--text);font-size:14px;transition:border-color .2s,box-shadow .2s}
+  .text-input::placeholder{color:#66676D}
+  .text-input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(214,255,63,.08)}
+  .primary{border:1px solid var(--accent);border-radius:6px;background:var(--accent);padding:0 20px;color:var(--black);cursor:pointer;font:700 11px/1 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;transition:filter .2s,transform .2s}
+  .primary:hover{filter:brightness(.9);transform:translateY(-1px)}
+  .primary:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+  .primary:disabled{opacity:.5;cursor:wait;transform:none}
+  .console-hint{display:flex;justify-content:space-between;margin-top:12px;color:#6F7076;font:400 9px/1.4 'IBM Plex Mono',monospace;text-transform:uppercase}
+  .dropzone{position:relative;min-height:214px;display:grid;place-items:center;border:1px dashed #47484E;border-radius:8px;background:#111214;text-align:center;cursor:pointer;overflow:hidden;transition:border-color .2s,background .2s,box-shadow .2s}
+  .dropzone:hover,.dropzone.drag{border-color:var(--accent);background:rgba(214,255,63,.035);box-shadow:inset 0 0 0 1px rgba(214,255,63,.2)}
+  .dropzone input{display:none}
+  .drop-content{position:relative;z-index:1;padding:32px}
+  .upload-icon{display:grid;place-items:center;width:40px;height:40px;margin:0 auto 17px;border:1px solid var(--border);border-radius:50%;color:var(--accent);font:500 20px/1 'IBM Plex Mono',monospace}
+  .dz-main{margin:0 0 7px;font:600 16px/1.2 'Space Grotesk',sans-serif}
+  .dz-sub{margin:0;color:var(--muted);font:400 10px/1.5 'IBM Plex Mono',monospace;text-transform:uppercase}
+  #imgPreview{position:absolute;inset:0;width:100%;height:100%;display:none;object-fit:cover;opacity:.25}
+
+  .results-section{padding:64px 0 104px;background:linear-gradient(180deg,rgba(23,24,27,.25),transparent 260px)}
+  .scan-panel{display:none;margin-bottom:64px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);overflow:hidden}
+  .scan-panel.show{display:block;animation:panelIn .35s ease}
+  .scan-header{display:flex;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.11em;text-transform:uppercase}
+  .scan-live{color:var(--accent)}
+  .scan-body{display:grid;grid-template-columns:minmax(240px,.82fr) minmax(0,1.18fr)}
+  .scan-image{position:relative;min-height:430px;border-right:1px solid var(--border);background:#0A0B0C;overflow:hidden}
+  .scan-image img{width:100%;height:100%;position:absolute;inset:0;object-fit:cover}
+  .scan-image::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 49.6%,rgba(214,255,63,.7) 50%,transparent 50.4%);background-size:100% 180px;animation:scan 3.5s linear infinite;mix-blend-mode:screen;pointer-events:none}
+  .scan-corners{position:absolute;inset:18px;z-index:1;border:1px solid rgba(214,255,63,.28);clip-path:polygon(0 0,15% 0,15% 1px,85% 1px,85% 0,100% 0,100% 15%,calc(100% - 1px) 15%,calc(100% - 1px) 85%,100% 85%,100% 100%,85% 100%,85% calc(100% - 1px),15% calc(100% - 1px),15% 100%,0 100%,0 85%,1px 85%,1px 15%,0 15%)}
+  @keyframes scan{from{background-position:0 -180px}to{background-position:0 430px}}
+  .readout{padding:34px 38px}
+  .readout-title{margin:0 0 8px;font:600 28px/1 'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:-.03em}
+  .readout-sub{margin:0 0 30px;color:var(--muted);font:400 10px/1.5 'IBM Plex Mono',monospace;text-transform:uppercase}
+  .attribute-list{display:flex;flex-direction:column}
+  .attribute{padding:15px 0;border-top:1px solid var(--border)}
+  .attribute-top{display:grid;grid-template-columns:120px 1fr auto;gap:16px;align-items:baseline;margin-bottom:10px}
+  .attribute-key{color:var(--muted);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase}
+  .attribute-value{font:600 17px/1.15 'Space Grotesk',sans-serif;text-transform:uppercase}
+  .attribute-confidence{color:var(--accent);font:500 10px/1 'IBM Plex Mono',monospace}
+  .confidence-track{height:2px;background:#303136;overflow:hidden}
+  .confidence-fill{height:100%;background:var(--accent);box-shadow:0 0 8px rgba(214,255,63,.5);transform-origin:left;animation:fillBar .65s ease both}
+  @keyframes fillBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+  .results-heading{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+  .section-index{display:block;margin-bottom:10px;color:var(--accent);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.1em}
+  .results-heading h2{margin:0;font:600 clamp(28px,3vw,42px)/1 'Space Grotesk',sans-serif;letter-spacing:-.04em;text-transform:uppercase}
+  .results-count{color:var(--muted);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+  .card-item{min-width:0;border:1px solid var(--border);border-radius:9px;background:var(--surface);overflow:hidden;transition:border-color .25s,transform .25s,box-shadow .25s}
+  .card-item:hover{transform:translateY(-5px);border-color:#45464B;box-shadow:0 18px 40px rgba(0,0,0,.3)}
+  .thumb{position:relative;aspect-ratio:4/5;overflow:hidden;background:#202125}
+  .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1),filter .3s}
+  .card-item:hover .thumb img{transform:scale(1.055);filter:contrast(1.04)}
+  .score{position:absolute;z-index:2;top:10px;right:10px;padding:7px 8px;background:var(--accent);color:var(--black);font:600 9px/1 'IBM Plex Mono',monospace;letter-spacing:.04em;text-transform:uppercase}
+  .meta{padding:15px 15px 17px}
+  .product-id{margin-bottom:8px;color:#6F7076;font:500 9px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+  .name{min-height:40px;margin:0 0 13px;font:600 15px/1.3 'Space Grotesk',sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tags span{border:1px solid var(--border);border-radius:999px;padding:5px 7px;color:var(--muted);font:500 8px/1 'IBM Plex Mono',monospace;text-transform:uppercase}
+  .loading,.empty{min-height:220px;display:grid;place-items:center;border:1px solid var(--border);border-radius:9px;color:var(--muted);font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase}
+  .loading::before{content:'';width:26px;height:2px;margin-right:12px;display:inline-block;background:var(--accent);animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.25;transform:scaleX(.55)}}
+  footer{padding:28px 0;border-top:1px solid var(--border);color:#707177;font:400 9px/1.6 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase}
+  .footer-inner{display:flex;justify-content:space-between;gap:24px}
+
+  @media(max-width:1050px){
+    .hero-grid{grid-template-columns:1fr;gap:48px}.hero-copy{max-width:720px}.console{max-width:720px}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  @media(max-width:760px){
+    .wrap{width:min(100% - 32px,1380px)}.header-inner{height:62px}.system-status{display:none}.hero{padding:48px 0}.hero-grid{gap:38px}h1{font-size:clamp(46px,15vw,72px)}.scan-body{grid-template-columns:1fr}.scan-image{min-height:340px;border-right:0;border-bottom:1px solid var(--border)}.readout{padding:28px 22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.footer-inner{flex-direction:column}.attribute-top{grid-template-columns:92px 1fr auto}.vc-help-steps{grid-template-columns:1fr}.vc-help-result-grid{grid-template-columns:1fr}.vc-help-backdrop{padding:10px}.vc-help-modal{max-height:94vh}.vc-help-head,.vc-help-body{padding:20px}.vc-help-matches{grid-template-columns:repeat(4,minmax(80px,1fr))}
+  }
+  @media(max-width:480px){
+    .brand{font-size:15px}.stat-pill{padding:7px 8px;font-size:8px}.text-row{flex-direction:column}.primary{height:48px}.console-body{padding:16px}.console-head{padding:17px}.grid{gap:10px}.meta{padding:12px}.name{font-size:13px}.tags span:nth-child(3){display:none}.results-section{padding-top:48px}.results-heading{align-items:flex-start;gap:12px}.results-count{padding-top:8px}.scan-image{min-height:300px}
+    .vc-help-matches{grid-template-columns:repeat(2,minmax(0,1fr))}.vc-help-title{font-size:23px}
+  }
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div class="brand"><span class="brand-mark"></span>Vision Console</div>
+    <div class="status-cluster">
+      <div class="system-status">System online</div>
+      <div class="stat-pill" id="statLine">Index loading</div>
+      <button class="vc-help-trigger" id="vcHelpTrigger" type="button" aria-label="Help and test samples" aria-haspopup="dialog" aria-expanded="false">?</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">Fashion intelligence interface</div>
+        <h1>Search with <em>vision.</em></h1>
+        <p class="hero-copy">Query 44,000+ fashion products by language or image. Identify garment attributes, inspect model confidence, and surface visually similar products in seconds.</p>
+        <div class="quick-label">Quick search vectors</div>
+        <div class="chips">
+          <button class="chip" data-q="red ethnic kurta women">Red ethnic kurta</button>
+          <button class="chip" data-q="black formal shoes">Black formal shoes</button>
+          <button class="chip" data-q="sports jersey blue">Blue sports jersey</button>
+          <button class="chip" data-q="women handbag">Women's handbag</button>
+        </div>
+      </div>
+
+      <div class="console">
+        <div class="console-head">
+          <span class="console-title">Search console</span>
+          <span class="console-code">VC / INPUT.01</span>
+        </div>
+        <div class="console-body">
+          <div class="console-tabs" role="tablist" aria-label="Search type">
+            <button class="console-tab active" role="tab" aria-selected="true" data-tab="text">Text query</button>
+            <button class="console-tab" role="tab" aria-selected="false" data-tab="image">Photo scan</button>
+          </div>
+          <div class="panel active" id="panel-text" role="tabpanel">
+            <label class="field-label" for="textInput">Describe target product</label>
+            <div class="text-row">
+              <input class="text-input" type="text" id="textInput" placeholder="e.g. navy casual shirt for men" autocomplete="off">
+              <button class="primary" id="textBtn">Run search</button>
+            </div>
+            <div class="console-hint"><span>Semantic / TF-IDF</span><span>Return / 18</span></div>
+          </div>
+          <div class="panel" id="panel-image" role="tabpanel">
+            <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload a product image">
+              <input type="file" id="fileInput" accept="image/*">
+              <img id="imgPreview" alt="Selected product preview">
+              <div class="drop-content">
+                <div class="upload-icon">+</div>
+                <p class="dz-main">Drop product image</p>
+                <p class="dz-sub">or click to browse · JPG / PNG</p>
+              </div>
+            </div>
+            <div class="console-hint"><span>Visual / HSV + HOG</span><span>Max / 10 MB</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="results-section">
+    <div class="wrap">
+      <section class="scan-panel" id="scanPanel" aria-live="polite">
+        <div class="scan-header"><span>Machine vision readout</span><span class="scan-live">● Analysis complete</span></div>
+        <div class="scan-body">
+          <div class="scan-image"><img id="scanImage" alt="Analysed upload"><div class="scan-corners"></div></div>
+          <div class="readout">
+            <h2 class="readout-title">Attribute scan</h2>
+            <p class="readout-sub">Predicted labels / model confidence</p>
+            <div class="attribute-list" id="attributeList"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="results-heading">
+        <div><span class="section-index">02 / OUTPUT</span><h2 id="resultsTitle">Live catalogue</h2></div>
+        <span class="results-count" id="resultsCount"></span>
+      </div>
+      <div id="resultsArea"><div class="loading">Initialising catalogue</div></div>
+    </div>
+  </section>
+</main>
+
+<div class="vc-help-backdrop" id="vcHelpBackdrop" aria-hidden="true">
+  <section class="vc-help-modal" id="vcHelpModal" role="dialog" aria-modal="true" aria-labelledby="vcHelpTitle">
+    <header class="vc-help-head">
+      <div><span class="vc-help-kicker">VC / Operator guide</span><h2 class="vc-help-title" id="vcHelpTitle">Run a search test</h2></div>
+      <button class="vc-help-close" id="vcHelpClose" type="button" aria-label="Close help">×</button>
+    </header>
+    <div class="vc-help-body">
+      <ol class="vc-help-steps">
+        <li class="vc-help-step"><strong>Search by text.</strong><br>Describe a product, colour, category, or use case and run a semantic search.</li>
+        <li class="vc-help-step"><strong>Search by photo.</strong><br>Drop or upload a garment image to predict its attributes and find visual matches.</li>
+      </ol>
+      <h3 class="vc-help-section-title">No photo handy? Try one of these</h3>
+      <p class="vc-help-section-sub">Select a catalogue image to run a self-contained visual search</p>
+      <div class="vc-help-samples" id="vcHelpSamples"><div class="vc-help-state">Samples load when opened</div></div>
+      <section class="vc-help-result" id="vcHelpResult" aria-live="polite"></section>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap footer-inner"><span>Vision Console / Fashion retrieval system</span><span>HSV + HOG · TF-IDF · FastAPI</span></div>
+</footer>
+
+<script>
+const API = '';
+const tabs = document.querySelectorAll('.console-tab');
+const panels = {text:document.getElementById('panel-text'),image:document.getElementById('panel-image')};
+const area = document.getElementById('resultsArea');
+let previewUrl = null;
+
+tabs.forEach(tab=>tab.addEventListener('click',()=>selectTab(tab.dataset.tab)));
+function selectTab(name){
+  tabs.forEach(tab=>{const active=tab.dataset.tab===name;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));});
+  Object.entries(panels).forEach(([key,panel])=>panel.classList.toggle('active',key===name));
+}
+
+function escapeHtml(value){
+  return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+}
+
+function renderGrid(products){
+  if(!products.length){area.innerHTML='<div class="empty">No matching vectors found</div>';return;}
+  area.innerHTML='<div class="grid"></div>';
+  const grid=area.querySelector('.grid');
+  products.forEach(product=>{
+    const card=document.createElement('article');
+    card.className='card-item';
+    const score=product.score!==undefined?`<div class="score">${Math.round(product.score*100)}% match</div>`:'';
+    card.innerHTML=`<div class="thumb"><img src="${escapeHtml(product.image_url)}" loading="lazy" alt="${escapeHtml(product.name)}">${score}</div><div class="meta"><div class="product-id">ID / ${escapeHtml(product.id)}</div><p class="name">${escapeHtml(product.name)}</p><div class="tags"><span>${escapeHtml(product.baseColour)}</span><span>${escapeHtml(product.subCategory)}</span><span>${escapeHtml(product.usage)}</span></div></div>`;
+    grid.appendChild(card);
+  });
+}
+
+function hideScan(){document.getElementById('scanPanel').classList.remove('show');}
+function showScan(tags){
+  const labels={masterCategory:'Category',subCategory:'Sub-type',baseColour:'Colour',season:'Season',usage:'Occasion'};
+  const list=document.getElementById('attributeList');
+  list.innerHTML='';
+  Object.entries(tags).forEach(([key,data])=>{
+    const confidence=Math.max(0,Math.min(1,Number(data.confidence)||0));
+    const row=document.createElement('div');
+    row.className='attribute';
+    row.innerHTML=`<div class="attribute-top"><span class="attribute-key">${escapeHtml(labels[key]||key)}</span><span class="attribute-value">${escapeHtml(data.value)}</span><span class="attribute-confidence">${Math.round(confidence*100)}%</span></div><div class="confidence-track"><div class="confidence-fill" style="width:${confidence*100}%"></div></div>`;
+    list.appendChild(row);
+  });
+  document.getElementById('scanPanel').classList.add('show');
+}
+
+async function loadStats(){
+  try{const res=await fetch(API+'/api/stats');if(!res.ok)throw new Error();const data=await res.json();document.getElementById('statLine').textContent=`${Number(data.total_products).toLocaleString()} items indexed`;}
+  catch{document.getElementById('statLine').textContent='Index unavailable';}
+}
+async function loadRandom(){
+  area.innerHTML='<div class="loading">Initialising catalogue</div>';
+  try{const res=await fetch(API+'/api/random?n=16');if(!res.ok)throw new Error();const data=await res.json();document.getElementById('resultsTitle').textContent='Live catalogue';document.getElementById('resultsCount').textContent=`${data.length} sample items`;renderGrid(data);}
+  catch{area.innerHTML='<div class="empty">Catalogue connection failed</div>';}
+}
+async function runTextSearch(query){
+  const q=query.trim();if(!q)return;
+  hideScan();area.innerHTML='<div class="loading">Running semantic search</div>';
+  document.getElementById('resultsTitle').textContent='Query results';document.getElementById('resultsCount').textContent=`“${q}”`;
+  const button=document.getElementById('textBtn');button.disabled=true;
+  try{const res=await fetch(API+'/api/search/text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q,k:18})});if(!res.ok)throw new Error();const data=await res.json();document.getElementById('resultsCount').textContent=`${data.length} ranked matches`;renderGrid(data);document.querySelector('.results-section').scrollIntoView({behavior:'smooth'});}
+  catch{area.innerHTML='<div class="empty">Search request failed</div>';}
+  finally{button.disabled=false;}
+}
+
+document.getElementById('textBtn').addEventListener('click',()=>runTextSearch(document.getElementById('textInput').value));
+document.getElementById('textInput').addEventListener('keydown',event=>{if(event.key==='Enter')runTextSearch(event.target.value);});
+document.querySelectorAll('.chip').forEach(chip=>chip.addEventListener('click',()=>{document.getElementById('textInput').value=chip.dataset.q;selectTab('text');runTextSearch(chip.dataset.q);}));
+
+const dropzone=document.getElementById('dropzone');
+const fileInput=document.getElementById('fileInput');
+dropzone.addEventListener('click',()=>fileInput.click());
+dropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();fileInput.click();}});
+dropzone.addEventListener('dragover',event=>{event.preventDefault();dropzone.classList.add('drag');});
+dropzone.addEventListener('dragleave',()=>dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop',event=>{event.preventDefault();dropzone.classList.remove('drag');if(event.dataTransfer.files.length)handleImageFile(event.dataTransfer.files[0]);});
+fileInput.addEventListener('change',event=>{if(event.target.files.length)handleImageFile(event.target.files[0]);});
+
+async function handleImageFile(file){
+  if(!file.type.startsWith('image/')){area.innerHTML='<div class="empty">Unsupported file type</div>';return;}
+  if(previewUrl)URL.revokeObjectURL(previewUrl);
+  previewUrl=URL.createObjectURL(file);
+  const preview=document.getElementById('imgPreview');preview.src=previewUrl;preview.style.display='block';
+  document.getElementById('scanImage').src=previewUrl;
+  area.innerHTML='<div class="loading">Analysing visual features</div>';document.getElementById('resultsTitle').textContent='Visual matches';document.getElementById('resultsCount').textContent='Processing input';hideScan();
+  const form=new FormData();form.append('file',file);form.append('k',18);
+  try{const res=await fetch(API+'/api/search/image',{method:'POST',body:form});if(!res.ok)throw new Error();const data=await res.json();showScan(data.predicted_tags);document.getElementById('resultsCount').textContent=`${data.similar_products.length} ranked matches`;renderGrid(data.similar_products);document.getElementById('scanPanel').scrollIntoView({behavior:'smooth',block:'start'});}
+  catch{area.innerHTML='<div class="empty">Image analysis failed · try another file</div>';document.getElementById('resultsCount').textContent='';}
+}
+
+loadStats();
+loadRandom();
+</script>
+<script>
+(() => {
+  const trigger = document.getElementById('vcHelpTrigger');
+  const backdrop = document.getElementById('vcHelpBackdrop');
+  const modal = document.getElementById('vcHelpModal');
+  const closeButton = document.getElementById('vcHelpClose');
+  const samplesGrid = document.getElementById('vcHelpSamples');
+  const resultPanel = document.getElementById('vcHelpResult');
+  let samplesLoaded = false;
+
+  const escapeValue = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+  const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function openHelp() {
+    backdrop.classList.add('vc-help-open');
+    backdrop.setAttribute('aria-hidden', 'false');
+    trigger.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    closeButton.focus();
+    if (!samplesLoaded) loadSamples();
+  }
+
+  function closeHelp() {
+    backdrop.classList.remove('vc-help-open');
+    backdrop.setAttribute('aria-hidden', 'true');
+    trigger.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    trigger.focus();
+  }
+
+  async function loadSamples() {
+    samplesGrid.innerHTML = '<div class="vc-help-state">Loading test samples</div>';
+    try {
+      const response = await fetch('/api/samples?n=12');
+      if (!response.ok) throw new Error('Sample request failed');
+      const samples = await response.json();
+      if (!samples.length) {
+        samplesGrid.innerHTML = '<div class="vc-help-state">No samples available</div>';
+        return;
+      }
+      samplesGrid.innerHTML = '';
+      samples.forEach(sample => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'vc-help-sample';
+        button.setAttribute('aria-label', `Use ${sample.name} as a test photo`);
+        button.innerHTML = `<img src="${escapeValue(sample.image_url)}" alt="${escapeValue(sample.name)}" loading="lazy"><span>Use this photo →</span>`;
+        button.addEventListener('click', () => runSample(sample, button));
+        samplesGrid.appendChild(button);
+      });
+      samplesLoaded = true;
+    } catch {
+      samplesGrid.innerHTML = '<div class="vc-help-state">Could not load samples · try again</div>';
+      samplesLoaded = false;
+    }
+  }
+
+  async function runSample(sample, sourceButton) {
+    resultPanel.classList.add('vc-help-result-show');
+    resultPanel.innerHTML = '<div class="vc-help-state">Running image analysis</div>';
+    sourceButton.disabled = true;
+    try {
+      const imageResponse = await fetch(sample.image_url);
+      if (!imageResponse.ok) throw new Error('Image request failed');
+      const imageBlob = await imageResponse.blob();
+      const form = new FormData();
+      form.append('file', imageBlob, `${sample.id}.jpg`);
+      form.append('k', '4');
+      const searchResponse = await fetch('/api/search/image', {method:'POST', body:form});
+      if (!searchResponse.ok) throw new Error('Image search failed');
+      const data = await searchResponse.json();
+      const labels = {masterCategory:'Category',subCategory:'Sub-type',baseColour:'Colour',season:'Season',usage:'Occasion'};
+      const tags = Object.entries(data.predicted_tags).map(([key, item]) => `<div class="vc-help-tag"><span class="vc-help-tag-label">${escapeValue(labels[key] || key)}</span><span class="vc-help-tag-value">${escapeValue(item.value)}</span></div>`).join('');
+      const matches = data.similar_products.slice(0, 4).map(item => `<div class="vc-help-match"><img src="${escapeValue(item.image_url)}" alt="${escapeValue(item.name)}" loading="lazy"><span>${escapeValue(item.name)}</span></div>`).join('');
+      resultPanel.innerHTML = `<h3 class="vc-help-section-title">Test result</h3><p class="vc-help-section-sub">Predicted attributes and top visual matches</p><div class="vc-help-result-grid"><div class="vc-help-tag-list">${tags}</div><div class="vc-help-matches">${matches || '<div class="vc-help-state">No matches returned</div>'}</div></div>`;
+      resultPanel.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth', block:'nearest'});
+    } catch {
+      resultPanel.innerHTML = '<div class="vc-help-state">Test failed · choose another sample</div>';
+    } finally {
+      sourceButton.disabled = false;
+    }
+  }
+
+  function trapFocus(event) {
+    if (event.key === 'Escape') { closeHelp(); return; }
+    if (event.key !== 'Tab') return;
+    const focusable = [...modal.querySelectorAll(focusableSelector)].filter(element => element.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+
+  trigger.addEventListener('click', openHelp);
+  closeButton.addEventListener('click', closeHelp);
+  backdrop.addEventListener('click', event => { if (event.target === backdrop) closeHelp(); });
+  document.addEventListener('keydown', event => { if (backdrop.classList.contains('vc-help-open')) trapFocus(event); });
+})();
+</script>
+</body>
+</html>
