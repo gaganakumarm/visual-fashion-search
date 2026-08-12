@@ -1,0 +1,5 @@
+# Keep the browser interface out of GitHub's repository language statistics.
+# These files remain tracked and are still deployed normally.
+static/*.html linguist-vendored
+static/*.css linguist-vendored
+static/*.js linguist-vendored
