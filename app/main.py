@@ -50,6 +50,7 @@ COLOR_DIM = 24
 print(f"Loaded {len(df)} products.")
 
 app.mount("/images", StaticFiles(directory=str(IMG_DIR)), name="images")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 def row_to_dict(row):
